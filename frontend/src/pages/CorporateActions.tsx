@@ -13,6 +13,7 @@ import { getActions, CorporateActionItem } from '../services/api.js';
 import { LoadingState, ErrorState, EmptyState } from '../components/common/StateViews.js';
 import { CONTRACT_ADDRESSES } from '../lib/contracts.js';
 import { getExplorerUrl } from '../lib/explorer.js';
+import { StatusModal, TxState } from '../components/transactions/StatusModal.js';
 
 interface CorporateActionsProps {
   onNavigate?: (tab: string) => void;
@@ -25,9 +26,11 @@ export const CorporateActions: React.FC<CorporateActionsProps> = ({ onNavigate }
   const [isAmendModalOpen, setIsAmendModalOpen] = useState(false);
   const [newRateBps, setNewRateBps] = useState('350');
   const [newPayableDate, setNewPayableDate] = useState('2026-09-20');
-  const [amendReason, setAmendReason] = useState('Annual budget alignment');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [amendSuccess, setAmendSuccess] = useState(false);
+  const [amendReason, setAmendReason] = useState('Updated macro treasury addendum');
+
+  // Modal State
+  const [modalState, setModalState] = useState<TxState>('idle');
+  const [txHash, setTxHash] = useState<string | undefined>(undefined);
 
   const fetchActionsData = async () => {
     setLoading(true);
@@ -48,15 +51,31 @@ export const CorporateActions: React.FC<CorporateActionsProps> = ({ onNavigate }
 
   const handleSubmitAmendment = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsAmendModalOpen(false);
+    setModalState('prompt');
+
     setTimeout(() => {
-      setIsSubmitting(false);
-      setAmendSuccess(true);
+      setModalState('pending');
+      const hash = '0x1df74e9ea9d4d45922cba09bc501f3b5b3503a44a8952fd3fe61df11d5ee5642';
+      setTxHash(hash);
+
       setTimeout(() => {
-        setAmendSuccess(false);
-        setIsAmendModalOpen(false);
-      }, 1500);
-    }, 1000);
+        setModalState('confirmed');
+        // Dynamically append new amended action version in local state
+        setActions((prev) =>
+          prev.map((act) =>
+            act.id === 'CA-001'
+              ? {
+                  ...act,
+                  activeVersion: act.activeVersion + 1,
+                  totalVersions: act.totalVersions + 1,
+                  status: 'ACTIVE'
+                }
+              : act
+          )
+        );
+      }, 1600);
+    }, 800);
   };
 
   return (
@@ -99,169 +118,140 @@ export const CorporateActions: React.FC<CorporateActionsProps> = ({ onNavigate }
         </div>
       </div>
 
-      {loading && <LoadingState message="Loading corporate actions and version lineages from Member 1 Backend..." />}
+      {/* Invariant Educational Banner */}
+      <div className="p-4 rounded-xl bg-surface border border-line flex items-start gap-3 shadow-xs">
+        <div className="p-2 rounded-lg bg-primary-soft text-primary shrink-0 mt-0.5">
+          <Info className="w-4 h-4" />
+        </div>
+        <div className="space-y-1 text-xs">
+          <h4 className="font-semibold text-ink">Append-Only Immutability Rule</h4>
+          <p className="text-ink-muted leading-relaxed">
+            Amendments never overwrite prior versions. Creating an amendment marks the previous active version as{' '}
+            <span className="font-semibold text-superseded font-mono">SUPERSEDED</span> on-chain. Only the current{' '}
+            <span className="font-semibold text-success font-mono">ACTIVE</span> version can be executed by the{' '}
+            <code className="px-1 py-0.5 bg-surface-muted rounded text-[11px] font-mono text-ink">PaymentExecutor</code>.
+          </p>
+        </div>
+      </div>
+
+      {/* Content Rendering */}
+      {loading && <LoadingState message="Loading registered corporate actions..." />}
       {error && <ErrorState message={error} onRetry={fetchActionsData} />}
 
-      {!loading && (
-        <>
-          {/* Metrics Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-surface p-4 rounded-xl border border-line shadow-sm">
-              <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Total Actions</span>
-              <h3 className="text-2xl font-bold font-mono text-ink mt-1">{actions.length}</h3>
-              <p className="text-xs text-ink-muted mt-1 font-mono">Identifier: CA-001</p>
-            </div>
+      {!loading && !error && actions.length === 0 && (
+        <EmptyState
+          title="No Corporate Actions Found"
+          message="There are currently no active corporate actions on-chain for this asset."
+          actionLabel="Propose New Action"
+          onAction={() => setIsAmendModalOpen(true)}
+        />
+      )}
 
-            <div className="bg-surface p-4 rounded-xl border border-line shadow-sm">
-              <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Active Version</span>
-              <h3 className="text-2xl font-bold font-mono text-success mt-1">Version 2</h3>
-              <p className="text-xs text-ink-muted mt-1">4.00% Coupon (400 bps)</p>
-            </div>
-
-            <div className="bg-surface p-4 rounded-xl border border-line shadow-sm">
-              <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Historical Versions</span>
-              <h3 className="text-2xl font-bold font-mono text-superseded mt-1">1 Superseded</h3>
-              <p className="text-xs text-ink-muted mt-1">v1 (500 bps) permanently sealed</p>
-            </div>
-
-            <div className="bg-surface p-4 rounded-xl border border-line shadow-sm">
-              <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Payment Obligation</span>
-              <h3 className="text-2xl font-bold font-mono text-ink mt-1">40.00 USDC</h3>
-              <p className="text-xs text-ink-muted mt-1">Payable across 3 holders</p>
-            </div>
-          </div>
-
-          {/* Action Feed & Version Tree Component */}
-          {actions.length === 0 ? (
-            <EmptyState
-              title="No corporate actions announced"
-              message="No debt servicing actions have been announced yet."
-              actionLabel="Announce Action"
-              onAction={() => setIsAmendModalOpen(true)}
-            />
-          ) : (
-            <ActionFeed
-              onNavigate={onNavigate}
-              onOpenAmendModal={() => setIsAmendModalOpen(true)}
-            />
-          )}
-        </>
+      {!loading && !error && actions.length > 0 && (
+        <ActionFeed
+          onNavigate={onNavigate}
+          onOpenAmendModal={() => setIsAmendModalOpen(true)}
+        />
       )}
 
       {/* Amendment Proposal Modal */}
       {isAmendModalOpen && (
-        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-surface rounded-2xl border border-line shadow-xl max-w-lg w-full p-6 space-y-5 animate-in fade-in zoom-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-xs">
+          <div className="bg-surface border border-line rounded-2xl max-w-md w-full p-6 shadow-xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <h3 className="font-bold text-ink text-lg">Propose Action Amendment</h3>
-                <p className="text-xs text-ink-muted">Creates a new append-only version for CA-001.</p>
+                <h3 className="text-base font-bold text-ink">Propose Action Amendment</h3>
+                <p className="text-xs text-ink-muted">Action ID: CA-001 (Append new active version)</p>
               </div>
               <button
                 onClick={() => setIsAmendModalOpen(false)}
-                className="p-1 rounded-lg hover:bg-surface-muted text-ink-muted hover:text-ink transition-colors"
+                className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmitAmendment} className="space-y-4">
-              <div className="p-3 rounded-lg bg-surface-muted border border-line text-xs text-ink-muted flex items-start gap-2">
-                <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>
-                  Submitting this transaction will append <strong>Version 3</strong> on-chain. Version 2 will transition to <strong className="text-superseded">SUPERSEDED</strong>.
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-ink uppercase mb-1">
-                  Target Action ID
+            <form onSubmit={handleSubmitAmendment} className="space-y-4 text-xs">
+              <div className="space-y-1.5">
+                <label className="font-semibold text-ink flex items-center gap-1.5">
+                  <Percent className="w-3.5 h-3.5 text-primary" />
+                  <span>New Coupon Rate (Basis Points)</span>
                 </label>
-                <input
-                  type="text"
-                  disabled
-                  value="CA-001 (0x63612d303031...)"
-                  className="w-full px-3 py-2 bg-surface-muted border border-line rounded-lg text-xs font-mono text-ink-muted cursor-not-allowed"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-ink uppercase mb-1 flex items-center gap-1">
-                    <Percent className="w-3.5 h-3.5 text-primary" />
-                    New Rate (Basis Points)
-                  </label>
+                <div className="relative">
                   <input
                     type="number"
                     value={newRateBps}
                     onChange={(e) => setNewRateBps(e.target.value)}
-                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-xs font-mono text-ink focus:ring-1 focus:ring-primary focus:outline-none"
-                    placeholder="e.g. 400"
+                    className="w-full px-3 py-2 rounded-lg border border-line bg-surface-muted/40 text-ink focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+                    placeholder="350"
                     required
                   />
-                  <span className="text-[10px] text-ink-muted mt-0.5 block">
-                    {(Number(newRateBps) / 100).toFixed(2)}% annual coupon
+                  <span className="absolute right-3 top-2 text-ink-muted font-mono">
+                    {(Number(newRateBps) / 100).toFixed(2)}%
                   </span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-ink uppercase mb-1 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-primary" />
-                    New Payable Date
-                  </label>
-                  <input
-                    type="date"
-                    value={newPayableDate}
-                    onChange={(e) => setNewPayableDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-xs text-ink focus:ring-1 focus:ring-primary focus:outline-none"
-                    required
-                  />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-ink uppercase mb-1">
-                  Amendment Justification & Reason
+              <div className="space-y-1.5">
+                <label className="font-semibold text-ink flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  <span>Amended Payable Date</span>
                 </label>
-                <textarea
-                  value={amendReason}
-                  onChange={(e) => setAmendReason(e.target.value)}
-                  rows={2}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-xs text-ink focus:ring-1 focus:ring-primary focus:outline-none"
-                  placeholder="Describe the economic or legal basis for this amendment..."
+                <input
+                  type="date"
+                  value={newPayableDate}
+                  onChange={(e) => setNewPayableDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-line bg-surface-muted/40 text-ink focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
                   required
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2.5">
+              <div className="space-y-1.5">
+                <label className="font-semibold text-ink">Amendment Justification / Legal Notice</label>
+                <textarea
+                  value={amendReason}
+                  onChange={(e) => setAmendReason(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg border border-line bg-surface-muted/40 text-ink focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                  placeholder="Reason for changing the distribution terms..."
+                  required
+                />
+              </div>
+
+              <div className="p-3 rounded-lg bg-surface-muted/60 border border-line text-[11px] text-ink-muted">
+                Executing this transaction will permanently advance the version pointer and mark Version 2 as{' '}
+                <span className="font-semibold text-superseded">SUPERSEDED</span>.
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsAmendModalOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-line hover:bg-surface-muted text-xs font-medium text-ink transition-colors"
+                  className="px-4 py-2 rounded-lg border border-line hover:bg-surface-muted text-ink font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || amendSuccess}
-                  className="px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold transition-colors shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold shadow-sm transition-colors"
                 >
-                  {isSubmitting ? (
-                    <span>Submitting On-Chain...</span>
-                  ) : amendSuccess ? (
-                    <span>Amendment Submitted!</span>
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Broadcast Amendment</span>
-                    </>
-                  )}
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Broadcast Amendment</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Transaction Broadcast Status Modal */}
+      <StatusModal
+        isOpen={modalState !== 'idle'}
+        onClose={() => setModalState('idle')}
+        status={modalState}
+        title="Broadcast Corporate Action Amendment"
+        txHash={txHash}
+      />
     </div>
   );
 };

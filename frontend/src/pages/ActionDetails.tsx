@@ -4,7 +4,8 @@ import {
   ArrowLeft,
   CreditCard,
   Layers,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2
 } from 'lucide-react';
 import {
   getActionVersions,
@@ -14,6 +15,7 @@ import {
 } from '../services/api.js';
 import { LoadingState, ErrorState } from '../components/common/StateViews.js';
 import { VersionBadge } from '../components/actions/VersionBadge.js';
+import { StatusModal, TxState } from '../components/transactions/StatusModal.js';
 
 interface ActionDetailsProps {
   actionId?: string;
@@ -30,6 +32,11 @@ export const ActionDetails: React.FC<ActionDetailsProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [versions, setVersions] = useState<ActionVersionDetail[]>([]);
   const [preview, setPreview] = useState<PaymentPreviewResponse | null>(null);
+
+  // Execution modal state
+  const [txState, setTxState] = useState<TxState>('idle');
+  const [txHash, setTxHash] = useState<string | undefined>(undefined);
+  const [isExecutedLocal, setIsExecutedLocal] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -52,10 +59,28 @@ export const ActionDetails: React.FC<ActionDetailsProps> = ({
     loadData();
   }, [actionId]);
 
+  const handleExecutePayout = () => {
+    setTxState('prompt');
+    setTimeout(() => {
+      setTxState('pending');
+      const hash = '0x3c78a1f29d91827364bfa109823471029384710293847102938471029384710a';
+      setTxHash(hash);
+
+      setTimeout(() => {
+        setTxState('confirmed');
+        setIsExecutedLocal(true);
+        if (preview) {
+          setPreview({ ...preview, isExecuted: true });
+        }
+      }, 1600);
+    }, 800);
+  };
+
   if (loading) return <div className="p-8 max-w-6xl mx-auto"><LoadingState message="Loading Corporate Action details & on-chain preview..." /></div>;
   if (error) return <div className="p-8 max-w-6xl mx-auto"><ErrorState message={error} onRetry={loadData} /></div>;
 
   const activeVersion = versions.find((v) => v.status === 'ACTIVE') || versions[0];
+  const isSettled = isExecutedLocal || preview?.isExecuted;
 
   return (
     <div className="p-6 sm:p-8 max-w-6xl mx-auto space-y-6">
@@ -83,15 +108,32 @@ export const ActionDetails: React.FC<ActionDetailsProps> = ({
           </p>
         </div>
 
-        {onNavigate && (
-          <button
-            onClick={() => onNavigate('payments')}
-            className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <span>Proceed to Payment Execution</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        )}
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          {isSettled ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-success-soft text-success border border-success/30 rounded-lg text-xs font-semibold">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Coupon Disbursed (Settled)</span>
+            </div>
+          ) : (
+            <button
+              onClick={handleExecutePayout}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Execute Payout (40.00 USDC)</span>
+            </button>
+          )}
+
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate('payments')}
+              className="px-3 py-2 bg-surface hover:bg-surface-muted text-ink border border-line rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
+            >
+              <span>Payments Ledger</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 1. Action Information Card */}
@@ -122,8 +164,8 @@ export const ActionDetails: React.FC<ActionDetailsProps> = ({
 
           <div className="p-3 bg-surface-muted/60 rounded-lg border border-line">
             <span className="text-ink-muted uppercase text-[10px] font-semibold">Execution Status</span>
-            <p className="font-bold text-primary text-sm mt-1">
-              {preview?.isExecuted ? 'EXECUTED & SEALED' : 'READY FOR PAYOUT'}
+            <p className={`font-bold text-sm mt-1 ${isSettled ? 'text-success' : 'text-primary'}`}>
+              {isSettled ? 'EXECUTED & SEALED' : 'READY FOR PAYOUT'}
             </p>
             <span className="text-[11px] text-ink-muted">Verified by PaymentExecutor</span>
           </div>
@@ -248,6 +290,15 @@ export const ActionDetails: React.FC<ActionDetailsProps> = ({
           </div>
         </div>
       )}
+
+      {/* Transaction Status Modal */}
+      <StatusModal
+        isOpen={txState !== 'idle'}
+        onClose={() => setTxState('idle')}
+        status={txState}
+        title="Execute Corporate Action Payout"
+        txHash={txHash}
+      />
     </div>
   );
 };

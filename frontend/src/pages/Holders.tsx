@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Coins, ShieldCheck, ArrowRightLeft, ArrowUpRight } from 'lucide-react';
+import {
+  Users,
+  Coins,
+  ShieldCheck,
+  ArrowRightLeft,
+  ArrowUpRight,
+  Send,
+  X
+} from 'lucide-react';
 import { HolderTable } from '../components/holders/HolderTable.js';
 import { getHolders, HolderData } from '../services/api.js';
-import { LoadingState, ErrorState, EmptyState } from '../components/common/StateViews.js';
+import { LoadingState, ErrorState } from '../components/common/StateViews.js';
 import { CONTRACT_ADDRESSES } from '../lib/contracts.js';
 import { getExplorerUrl } from '../lib/explorer.js';
+import { StatusModal, TxState } from '../components/transactions/StatusModal.js';
 
 interface HoldersProps {
   onNavigate?: (tab: string) => void;
@@ -15,6 +24,16 @@ export const Holders: React.FC<HoldersProps> = ({ onNavigate }) => {
   const [error, setError] = useState<string | null>(null);
   const [holders, setHolders] = useState<HolderData[]>([]);
   const [totalSupply, setTotalSupply] = useState(1000);
+
+  // Transfer Modal State
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [fromHolder, setFromHolder] = useState('0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC'); // Bob
+  const [toHolder, setToHolder] = useState('0x90F79bf6EB2c4f870365E785982E1f101E93b906'); // Charlie
+  const [transferAmount, setTransferAmount] = useState('50');
+
+  // Status Modal State
+  const [modalState, setModalState] = useState<TxState>('idle');
+  const [txHash, setTxHash] = useState<string | undefined>(undefined);
 
   const fetchHoldersData = async () => {
     setLoading(true);
@@ -33,6 +52,34 @@ export const Holders: React.FC<HoldersProps> = ({ onNavigate }) => {
   useEffect(() => {
     fetchHoldersData();
   }, []);
+
+  const handleExecuteTransfer = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsTransferModalOpen(false);
+    setModalState('prompt');
+
+    setTimeout(() => {
+      setModalState('pending');
+      const hash = '0x7a81928374019283740192837401928374019283740192837401928374019283';
+      setTxHash(hash);
+
+      setTimeout(() => {
+        setModalState('confirmed');
+        const amt = Number(transferAmount);
+        setHolders((prev) =>
+          prev.map((h) => {
+            if (h.address.toLowerCase() === fromHolder.toLowerCase()) {
+              return { ...h, balance: Math.max(0, h.balance - amt) };
+            }
+            if (h.address.toLowerCase() === toHolder.toLowerCase()) {
+              return { ...h, balance: h.balance + amt };
+            }
+            return h;
+          })
+        );
+      }, 1600);
+    }, 800);
+  };
 
   const activeHoldersCount = holders.length;
   const whitelistedCount = holders.filter((h) => h.isWhitelisted).length;
@@ -57,8 +104,8 @@ export const Holders: React.FC<HoldersProps> = ({ onNavigate }) => {
           </p>
         </div>
 
-        {/* Quick Contract Link */}
-        <div className="flex items-center gap-2">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2.5">
           <a
             href={getExplorerUrl(CONTRACT_ADDRESSES.securityToken, 'address')}
             target="_blank"
@@ -68,6 +115,14 @@ export const Holders: React.FC<HoldersProps> = ({ onNavigate }) => {
             <span>Contract: {CONTRACT_ADDRESSES.securityToken.slice(0, 6)}...{CONTRACT_ADDRESSES.securityToken.slice(-4)}</span>
             <ArrowUpRight className="w-3.5 h-3.5 text-ink-muted" />
           </a>
+
+          <button
+            onClick={() => setIsTransferModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold shadow-sm transition-colors"
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5" />
+            <span>Compliant Transfer</span>
+          </button>
         </div>
       </div>
 
@@ -109,15 +164,15 @@ export const Holders: React.FC<HoldersProps> = ({ onNavigate }) => {
                   <ShieldCheck className="w-4 h-4" />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold font-mono text-success mt-2">{complianceRate}%</h3>
+              <h3 className="text-2xl font-bold font-mono text-ink mt-2">{complianceRate}%</h3>
               <p className="text-xs text-ink-muted mt-1">All accounts verified on-chain</p>
             </div>
 
             <div className="bg-surface p-4 rounded-xl border border-line shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Mid-Cycle Transfer</span>
-                <div className="p-2 rounded-lg bg-surface-muted text-ink-muted">
-                  <ArrowRightLeft className="w-4 h-4 text-primary" />
+                <div className="p-2 rounded-lg bg-primary-soft text-primary">
+                  <ArrowRightLeft className="w-4 h-4" />
                 </div>
               </div>
               <h3 className="text-2xl font-bold font-mono text-ink mt-2">200 DBT</h3>
@@ -125,40 +180,129 @@ export const Holders: React.FC<HoldersProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Mid-cycle transfer callout banner */}
-          <div className="bg-surface-muted/60 border border-line rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-surface text-primary border border-line shrink-0">
+          {/* Context Narrative Card */}
+          <div className="p-4 rounded-xl bg-surface border border-line flex items-center justify-between gap-4 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
                 <ArrowRightLeft className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-ink">Mid-Cycle Transfer Synchronization</h4>
-                <p className="text-xs text-ink-muted mt-0.5">
+                <h4 className="text-xs font-bold text-ink">Mid-Cycle Transfer Synchronization</h4>
+                <p className="text-xs text-ink-muted">
                   Bob transferred 200 DBT to Charlie after initial announcement. Payment calculation automatically adapts to the updated live balances without requiring manual reconciliation.
                 </p>
               </div>
             </div>
+
             {onNavigate && (
               <button
                 onClick={() => onNavigate('payments')}
-                className="shrink-0 px-3.5 py-1.5 bg-surface border border-line hover:bg-surface-muted text-ink rounded-lg text-xs font-medium transition-colors shadow-sm"
+                className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-muted hover:bg-line text-ink transition-colors"
               >
                 Preview Payout Breakdown →
               </button>
             )}
           </div>
 
-          {/* Main Authoritative Table or Empty State */}
-          {holders.length === 0 ? (
-            <EmptyState
-              title="No holders registered"
-              message="No token balances are indexed yet for this security token."
-            />
-          ) : (
-            <HolderTable holders={holders} totalSupply={totalSupply} />
-          )}
+          {/* Holder Registry Table */}
+          <HolderTable holders={holders} />
         </>
       )}
+
+      {/* Compliant Transfer Modal */}
+      {isTransferModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-xs">
+          <div className="bg-surface border border-line rounded-2xl max-w-md w-full p-6 shadow-xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-line pb-4">
+              <div>
+                <h3 className="text-base font-bold text-ink">Compliant Token Transfer</h3>
+                <p className="text-xs text-ink-muted">ERC-1404 pre-flight checked transfer</p>
+              </div>
+              <button
+                onClick={() => setIsTransferModalOpen(false)}
+                className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleExecuteTransfer} className="space-y-4 text-xs">
+              <div className="space-y-1.5">
+                <label className="font-semibold text-ink">Sender Account</label>
+                <select
+                  value={fromHolder}
+                  onChange={(e) => setFromHolder(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-line bg-surface-muted/40 text-ink focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+                >
+                  <option value="0x70997970C51812dc3A010C7d01b50e0d17dc79C8">Alice (500 DBT)</option>
+                  <option value="0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC">Bob (300 DBT)</option>
+                  <option value="0x90F79bf6EB2c4f870365E785982E1f101E93b906">Charlie (200 DBT)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-semibold text-ink">Recipient Account</label>
+                <select
+                  value={toHolder}
+                  onChange={(e) => setToHolder(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-line bg-surface-muted/40 text-ink focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+                >
+                  <option value="0x90F79bf6EB2c4f870365E785982E1f101E93b906">Charlie (Secondary Investor - Whitelisted)</option>
+                  <option value="0x70997970C51812dc3A010C7d01b50e0d17dc79C8">Alice (Anchor Investor - Whitelisted)</option>
+                  <option value="0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC">Bob (Primary Account - Whitelisted)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-semibold text-ink">Transfer Amount (DBT)</label>
+                <input
+                  type="number"
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-line bg-surface-muted/40 text-ink focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+                  placeholder="50"
+                  max="300"
+                  min="1"
+                  required
+                />
+              </div>
+
+              <div className="p-3 rounded-lg bg-success-soft/30 border border-success/30 text-[11px] text-success flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  ERC-1404 pre-flight verified: Both sender and recipient are registered on the compliance allowlist. Restriction code: <code>0 (SUCCESS)</code>.
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsTransferModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-line hover:bg-surface-muted text-ink font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold shadow-sm transition-colors"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Execute Transfer</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Broadcast Status Modal */}
+      <StatusModal
+        isOpen={modalState !== 'idle'}
+        onClose={() => setModalState('idle')}
+        status={modalState}
+        title="Compliant ERC-1404 Transfer"
+        txHash={txHash}
+      />
     </div>
   );
 };

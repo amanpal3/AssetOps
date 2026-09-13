@@ -19,7 +19,9 @@
     "frontend:build": "pnpm --filter frontend build",
     "backend:dev": "pnpm --filter backend dev",
     "backend:build": "pnpm --filter backend build",
-    "test:e2e": "tsx tests/e2e/lifecycle.demo.test.ts",
+    "test:e2e": "tsx tests/e2e/lifecycle.demo.test.ts && tsx tests/e2e/redemption.demo.test.ts",
+    "test:e2e:lifecycle": "tsx tests/e2e/lifecycle.demo.test.ts",
+    "test:e2e:redemption": "tsx tests/e2e/redemption.demo.test.ts",
     "seed:demo": "pnpm --dir contracts run seed:demo"
   },
   "keywords": [
