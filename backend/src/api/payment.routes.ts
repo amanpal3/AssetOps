@@ -1,10 +1,29 @@
 import { Router } from 'express';
-import { getDatabase } from '../database/connection.js';
+import { prisma } from '../database/prisma.js';
 
 export const paymentRoutes = Router();
 
-paymentRoutes.get('/actions/:actionId/payments', (req, res) => {
-  const db = getDatabase();
-  const payments = db.prepare('SELECT * FROM payment_events WHERE action_id = ?').all(req.params.actionId);
-  res.json({ payments });
+// GET /api/v1/payments
+// Optional filters: ?actionId=0x...&holder=0x...
+paymentRoutes.get('/payments', async (req, res, next) => {
+  try {
+    const { actionId, holder } = req.query;
+    const where: any = {};
+
+    if (actionId) where.actionId = String(actionId).toLowerCase();
+    if (holder) where.holderAddress = String(holder).toLowerCase();
+
+    const payments = await prisma.paymentEvent.findMany({
+      where,
+      orderBy: { timestamp: 'desc' },
+      take: 100
+    });
+
+    res.json({
+      payments,
+      count: payments.length
+    });
+  } catch (error) {
+    next(error);
+  }
 });

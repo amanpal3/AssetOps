@@ -29,6 +29,7 @@ contract CorporateActionRegistry is AccessControl, ICorporateActionRegistry {
     error VersionNotActive(bytes32 versionId);
     error VersionNotCurrent(bytes32 actionId, bytes32 versionId);
     error ActionAlreadyExecuted(bytes32 actionId);
+    error ActionCancelledError(bytes32 actionId);
 
     event ActionCreated(
         bytes32 indexed actionId,
@@ -55,6 +56,11 @@ contract CorporateActionRegistry is AccessControl, ICorporateActionRegistry {
         bytes32 indexed actionId,
         bytes32 indexed versionId,
         address indexed executor
+    );
+
+    event ActionCancelled(
+        bytes32 indexed actionId,
+        bytes32 indexed versionId
     );
 
     constructor(address admin) {
@@ -143,6 +149,9 @@ contract CorporateActionRegistry is AccessControl, ICorporateActionRegistry {
 
         // Mark old version SUPERSEDED
         oldVer.status = ActionStatus.SUPERSEDED;
+        if (_history[actionId].length > 0) {
+            _history[actionId][_history[actionId].length - 1].status = ActionStatus.SUPERSEDED;
+        }
         emit VersionSuperseded(actionId, oldVersionId, newVersionId);
 
         // Create and append new ACTIVE version
@@ -186,6 +195,21 @@ contract CorporateActionRegistry is AccessControl, ICorporateActionRegistry {
         ca.status = ActionStatus.EXECUTED;
 
         emit ActionExecuted(actionId, versionId, msg.sender);
+    }
+
+    function cancelAction(bytes32 actionId) external onlyRole(ANNOUNCER_ROLE) {
+        if (!exists[actionId]) revert ActionNotFound(actionId);
+        CorporateAction storage ca = _actions[actionId];
+        if (ca.status == ActionStatus.EXECUTED) revert ActionAlreadyExecuted(actionId);
+        if (ca.status != ActionStatus.ACTIVE) revert ActionNotActive(actionId);
+
+        bytes32 activeVerId = _activeVersion[actionId];
+        ActionVersion storage ver = _versions[activeVerId];
+
+        ver.status = ActionStatus.CANCELLED;
+        ca.status = ActionStatus.CANCELLED;
+
+        emit ActionCancelled(actionId, activeVerId);
     }
 
     function getAction(bytes32 actionId) external view returns (CorporateAction memory) {

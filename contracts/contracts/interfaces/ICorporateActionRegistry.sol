@@ -60,6 +60,7 @@ interface ICorporateActionRegistry {
     ) external returns (bytes32 versionId);
 
     function markExecuted(bytes32 actionId, bytes32 versionId) external;
+    function cancelAction(bytes32 actionId) external;
 
     function getAction(bytes32 actionId) external view returns (CorporateAction memory);
     function getVersion(bytes32 versionId) external view returns (ActionVersion memory);

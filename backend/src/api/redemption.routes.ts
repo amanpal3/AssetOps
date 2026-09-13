@@ -1,10 +1,28 @@
 import { Router } from 'express';
-import { getDatabase } from '../database/connection.js';
+import { prisma } from '../database/prisma.js';
 
 export const redemptionRoutes = Router();
 
-redemptionRoutes.get('/redemptions', (req, res) => {
-  const db = getDatabase();
-  const redemptions = db.prepare(`SELECT * FROM corporate_actions WHERE action_type = 'REDEMPTION'`).all();
-  res.json({ redemptions });
+// GET /api/v1/redemptions
+// Optional filter: ?actionId=0x...
+redemptionRoutes.get('/redemptions', async (req, res, next) => {
+  try {
+    const { actionId } = req.query;
+    const where: any = {};
+
+    if (actionId) where.actionId = String(actionId).toLowerCase();
+
+    const redemptions = await prisma.redemptionEvent.findMany({
+      where,
+      orderBy: { timestamp: 'desc' },
+      take: 100
+    });
+
+    res.json({
+      redemptions,
+      count: redemptions.length
+    });
+  } catch (error) {
+    next(error);
+  }
 });

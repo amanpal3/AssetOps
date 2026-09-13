@@ -1,0 +1,176 @@
+// Prisma schema for AssetOps Backend & Blockchain Indexer
+// SQLite read model mirroring EVM blockchain events
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Checkpoint for indexer resumption and crash recovery
+model SyncCheckpoint {
+  id          String   @id @default("checkpoint")
+  chainId     Int      @default(31337)
+  lastBlock   BigInt   @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+// 2. Event deduplication store enforcing (txHash + logIndex + chainId) uniqueness
+model ProcessedEvent {
+  id              String   @id @default(cuid())
+  transactionHash String
+  logIndex        Int
+  chainId         Int
+  eventName       String
+  blockNumber     BigInt
+  timestamp       DateTime @default(now())
+
+  @@unique([transactionHash, logIndex, chainId])
+  @@index([transactionHash])
+}
+
+// 3. Tokenized asset read model
+model Asset {
+  address            String   @id
+  name               String
+  symbol             String
+  decimals           Int      @default(18)
+  totalSupply        String   @default("0")
+  totalSupplyDisplay String   @default("0")
+  holderCount        Int      @default(0)
+  status             String   @default("ACTIVE") // ACTIVE, PAUSED, REDEEMED
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  holders            Holder[]
+  actions            CorporateAction[]
+}
+
+// 4. Token holder balances & whitelist status (authoritative from Transfer events)
+model Holder {
+  id             String    @id @default(cuid())
+  address        String
+  assetAddress   String
+  asset          Asset     @relation(fields: [assetAddress], references: [address])
+  balance        String    @default("0")
+  balanceDisplay String    @default("0")
+  ownershipBps   Int       @default(0)
+  isWhitelisted  Boolean   @default(false)
+  lastTransferAt DateTime?
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([address, assetAddress])
+  @@index([address])
+  @@index([assetAddress])
+}
+
+// 5. On-chain asset transfers
+model Transfer {
+  id              String   @id @default(cuid())
+  assetAddress    String
+  from            String
+  to              String
+  amount          String
+  amountDisplay   String
+  transactionHash String
+  blockNumber     BigInt
+  timestamp       DateTime @default(now())
+
+  @@index([from])
+  @@index([to])
+  @@index([transactionHash])
+}
+
+// 6. Corporate actions root records
+model CorporateAction {
+  actionId         String          @id // bytes32 hex
+  actionReference  String          // e.g. "CA-001"
+  assetAddress     String
+  asset            Asset           @relation(fields: [assetAddress], references: [address])
+  actionType       String          // 'COUPON', 'INTEREST', 'REDEMPTION'
+  activeVersionId  String
+  activeVersionNum Int             @default(1)
+  status           String          @default("ACTIVE") // ACTIVE, SUPERSEDED, EXECUTED, CANCELLED
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  versions         ActionVersion[]
+  payments         PaymentEvent[]
+  redemptions      RedemptionEvent[]
+
+  @@index([assetAddress])
+}
+
+// 7. Append-only corporate action version history (DAG)
+model ActionVersion {
+  versionId           String          @id // bytes32 hex
+  actionId            String
+  action              CorporateAction @relation(fields: [actionId], references: [actionId])
+  versionNumber       Int
+  rateBps             Int?
+  displayRate         String?
+  amountPerToken      String?
+  recordDate          DateTime?
+  payableDate         DateTime?
+  supersedesVersionId String?
+  documentHash        String?
+  status              String          @default("ACTIVE") // ACTIVE, SUPERSEDED, EXECUTED, CANCELLED
+  announcedBy         String?
+  createdAt           DateTime        @default(now())
+
+  @@index([actionId])
+}
+
+// 8. Coupon & Interest payout events
+model PaymentEvent {
+  id              String          @id @default(cuid())
+  actionId        String
+  action          CorporateAction @relation(fields: [actionId], references: [actionId])
+  versionId       String
+  holderAddress   String
+  amount          String          // Payment currency base units
+  amountDisplay   String
+  assetBalance    String          // Asset balance at execution time
+  transactionHash String
+  blockNumber     BigInt
+  timestamp       DateTime        @default(now())
+
+  @@index([actionId])
+  @@index([holderAddress])
+  @@index([transactionHash])
+}
+
+// 9. Principal redemption & token burn events
+model RedemptionEvent {
+  id              String          @id @default(cuid())
+  actionId        String
+  action          CorporateAction @relation(fields: [actionId], references: [actionId])
+  versionId       String
+  holderAddress   String
+  tokensBurned    String          // Asset tokens burned
+  principalAmount String          // Principal currency paid
+  transactionHash String
+  blockNumber     BigInt
+  timestamp       DateTime        @default(now())
+
+  @@index([actionId])
+  @@index([holderAddress])
+  @@index([transactionHash])
+}
+
+// 10. Audit event log
+model AuditLog {
+  id              String   @id @default(cuid())
+  eventType       String   // ACTION_CREATED, ACTION_AMENDED, ACTION_EXECUTED, ACTION_CANCELLED, HOLDER_PAID, REDEEMED, BURN, TRANSFER, WHITELIST_UPDATED
+  actionId        String?
+  versionId       String?
+  actor           String?
+  details         String   // JSON string of full metadata
+  transactionHash String?
+  blockNumber     BigInt?
+  timestamp       DateTime @default(now())
+
+  @@index([eventType])
+  @@index([actionId])
+}

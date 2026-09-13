@@ -114,7 +114,8 @@ contract SecurityToken is ERC20, AccessControl, Pausable, ISecurityToken {
         address to,
         uint256 value
     ) internal virtual override {
-        if (paused()) {
+        // Pausing restricts transfers and mints, but authorized burning (e.g. redemption at maturity) is permitted
+        if (paused() && to != address(0)) {
             revert TransferPaused();
         }
 

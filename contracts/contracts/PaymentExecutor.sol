@@ -213,4 +213,86 @@ contract PaymentExecutor is AccessControl, ReentrancyGuard {
     function isExecuted(bytes32 versionId) external view returns (bool) {
         return executedVersion[versionId];
     }
+
+    function isExecuted(bytes32 /* actionId */, bytes32 versionId) external view returns (bool) {
+        return executedVersion[versionId];
+    }
+
+    function previewCoupon(bytes32 actionId)
+        external
+        view
+        returns (
+            address[] memory eligibleHolders,
+            uint256[] memory amounts,
+            uint256 total
+        )
+    {
+        ICorporateActionRegistry.CorporateAction memory ca = registry.getAction(actionId);
+        ICorporateActionRegistry.ActionVersion memory ver = registry.getActiveVersion(actionId);
+
+        ISecurityToken asset = ISecurityToken(ca.assetToken);
+        address[] memory allHolders = asset.getHolders();
+
+        uint256 count = 0;
+        for (uint256 i = 0; i < allHolders.length; i++) {
+            if (asset.balanceOf(allHolders[i]) > 0) {
+                count++;
+            }
+        }
+
+        eligibleHolders = new address[](count);
+        amounts = new uint256[](count);
+        total = 0;
+
+        uint256 idx = 0;
+        for (uint256 i = 0; i < allHolders.length; i++) {
+            uint256 bal = asset.balanceOf(allHolders[i]);
+            if (bal > 0) {
+                uint256 p = (bal * ver.rateBps) / 10000;
+                eligibleHolders[idx] = allHolders[i];
+                amounts[idx] = p;
+                total += p;
+                idx++;
+            }
+        }
+    }
+
+    function previewRedemption(bytes32 actionId)
+        external
+        view
+        returns (
+            address[] memory eligibleHolders,
+            uint256[] memory amounts,
+            uint256 total
+        )
+    {
+        ICorporateActionRegistry.CorporateAction memory ca = registry.getAction(actionId);
+        ICorporateActionRegistry.ActionVersion memory ver = registry.getActiveVersion(actionId);
+
+        ISecurityToken asset = ISecurityToken(ca.assetToken);
+        address[] memory allHolders = asset.getHolders();
+
+        uint256 count = 0;
+        for (uint256 i = 0; i < allHolders.length; i++) {
+            if (asset.balanceOf(allHolders[i]) > 0) {
+                count++;
+            }
+        }
+
+        eligibleHolders = new address[](count);
+        amounts = new uint256[](count);
+        total = 0;
+
+        uint256 idx = 0;
+        for (uint256 i = 0; i < allHolders.length; i++) {
+            uint256 bal = asset.balanceOf(allHolders[i]);
+            if (bal > 0) {
+                uint256 p = (bal * ver.amountPerToken) / 1e18;
+                eligibleHolders[idx] = allHolders[i];
+                amounts[idx] = p;
+                total += p;
+                idx++;
+            }
+        }
+    }
 }
