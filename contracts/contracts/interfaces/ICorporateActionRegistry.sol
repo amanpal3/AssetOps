@@ -23,12 +23,14 @@ interface ICorporateActionRegistry {
         bytes32 activeVersionId;
         ActionStatus status;
         uint64 createdAt;
+        uint64 updatedAt;
     }
 
     struct ActionVersion {
         bytes32 versionId;
         bytes32 actionId;
         uint32 version;
+        ActionType actionType;
         uint256 rateBps;
         uint256 amountPerToken;
         uint64 recordDate;
@@ -38,6 +40,7 @@ interface ICorporateActionRegistry {
         ActionStatus status;
         address announcedBy;
         uint64 createdAt;
+        uint64 updatedAt;
     }
 
     function createAction(
@@ -58,6 +61,8 @@ interface ICorporateActionRegistry {
         uint64 newPayableDate,
         string calldata newDocumentHash
     ) external returns (bytes32 versionId);
+
+    function cancelAction(bytes32 actionId) external;
 
     function markExecuted(bytes32 actionId, bytes32 versionId) external;
 
