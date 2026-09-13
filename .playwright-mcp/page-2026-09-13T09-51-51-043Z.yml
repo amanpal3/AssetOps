@@ -1,0 +1,31 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: A
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - heading "AssetOps" [level=1] [ref=e9]
+          - generic [ref=e10]: v0.1.0 • Live
+        - paragraph [ref=e11]: Operations Layer for Tokenized Assets
+    - generic [ref=e12]:
+      - generic [ref=e13]: Hardhat
+      - button "Connect Wallet" [ref=e18] [cursor=pointer]
+  - generic [ref=e23]:
+    - complementary [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]: Operations
+        - button "Overview" [ref=e27] [cursor=pointer]
+        - button "Assets" [ref=e35] [cursor=pointer]
+        - button "Holder Registry" [ref=e42] [cursor=pointer]
+        - button "Corporate Actions" [ref=e49] [cursor=pointer]
+        - button "Payments" [ref=e54] [cursor=pointer]
+        - button "Redemptions" [ref=e58] [cursor=pointer]
+        - button "Audit History" [ref=e62] [cursor=pointer]
+        - button "Demo Controls" [ref=e68] [cursor=pointer]
+      - generic [ref=e74]:
+        - generic [ref=e79]:
+          - paragraph [ref=e80]: Indexer Synced
+          - paragraph [ref=e81]: "Head: Block #194825"
+        - generic [ref=e82]: Live
+    - main [ref=e83]:
+      - paragraph [ref=e89]: Fetching live backend health, network head, and indexed holdings...

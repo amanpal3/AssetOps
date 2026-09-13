@@ -15,3 +15,13 @@ actionRoutes.get('/actions/:actionId', (req, res) => {
   const history = ActionRepository.getVersionHistory(req.params.actionId);
   res.json({ action, activeVersion, history });
 });
+
+actionRoutes.get('/actions/:actionId/versions', (req, res) => {
+  const versions = ActionRepository.getVersionHistory(req.params.actionId);
+  res.json({ versions });
+});
+
+actionRoutes.get('/actions/:actionId/preview', (req, res) => {
+  const preview = ActionRepository.getPaymentPreview(req.params.actionId);
+  res.json(preview);
+});

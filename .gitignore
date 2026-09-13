@@ -45,3 +45,13 @@ coverage.json
 scratch/
 tmp/
 temp/
+
+# Databases & SQLite WAL
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+backend/*.db*
+

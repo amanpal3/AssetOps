@@ -3,6 +3,32 @@ import { AuditRepository } from '../database/repositories/audit.repository.js';
 import { AssetRepository } from '../database/repositories/asset.repository.js';
 
 export const EventHandlers = {
+  handleTransfer(assetAddress: string, from: string, to: string, amount: string, event?: any) {
+    const db = getDatabase();
+    const zeroAddr = '0x0000000000000000000000000000000000000000';
+
+    if (from !== zeroAddr) {
+      const fromRow = db.prepare('SELECT balance FROM holders WHERE address = ?').get(from) as { balance: string } | undefined;
+      const current = fromRow ? Number(fromRow.balance) : 0;
+      const newBal = Math.max(0, current - Number(amount));
+      AssetRepository.upsertHolder(from, assetAddress, newBal.toString(), true);
+    }
+
+    if (to !== zeroAddr) {
+      const toRow = db.prepare('SELECT balance FROM holders WHERE address = ?').get(to) as { balance: string } | undefined;
+      const current = toRow ? Number(toRow.balance) : 0;
+      const newBal = current + Number(amount);
+      AssetRepository.upsertHolder(to, assetAddress, newBal.toString(), true);
+    }
+
+    AuditRepository.logEvent('Transfer', {
+      from,
+      to,
+      amount: `${amount} DBT`,
+      assetAddress
+    }, event?.transactionHash, event?.blockNumber);
+  },
+
   handleActionCreated(actionId: string, versionId: string, assetToken: string, actionType: number, version: number, event: any) {
     const db = getDatabase();
     const typeStr = actionType === 0 ? 'COUPON' : actionType === 1 ? 'INTEREST' : 'REDEMPTION';

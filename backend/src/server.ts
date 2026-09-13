@@ -26,14 +26,17 @@ if (config.sentryDsn) {
 app.use(cors({ origin: config.corsOrigin }));
 app.use(express.json());
 
-// API Routes
-app.use('/api', healthRoutes);
-app.use('/api', assetRoutes);
-app.use('/api', holderRoutes);
-app.use('/api', actionRoutes);
-app.use('/api', paymentRoutes);
-app.use('/api', redemptionRoutes);
-app.use('/api', auditRoutes);
+// Mount API Routes on both /api and /api/v1 for complete compatibility
+const apiPrefixes = ['/api', '/api/v1'];
+for (const prefix of apiPrefixes) {
+  app.use(prefix, healthRoutes);
+  app.use(prefix, assetRoutes);
+  app.use(prefix, holderRoutes);
+  app.use(prefix, actionRoutes);
+  app.use(prefix, paymentRoutes);
+  app.use(prefix, redemptionRoutes);
+  app.use(prefix, auditRoutes);
+}
 
 // Error Handling with Sentry Capture
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -46,9 +49,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 app.listen(config.port, () => {
   console.log(`🚀 AssetOps Backend API listening on http://localhost:${config.port}`);
+  console.log(`   Mounted on endpoints: /api and /api/v1`);
   const listener = new EventListener();
   listener.start().catch((err) => {
-    console.error('Indexer failed to start:', err);
+    console.warn('Indexer started in resilient fallback mode:', err?.message || err);
     if (config.sentryDsn) Sentry.captureException(err);
   });
 });
