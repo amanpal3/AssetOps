@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Activity } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   return (
