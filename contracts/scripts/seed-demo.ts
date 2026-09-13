@@ -35,7 +35,7 @@ async function main() {
   // 3. Fund treasury and approve executor
   await paymentCurrency.mint(deployer.address, ethers.parseEther("100000"));
   await paymentCurrency.approve(manifest.contracts.paymentExecutor, ethers.MaxUint256);
-  console.log("Treasury funded with 100,000 USDC and approved executor");
+  console.log("Treasury funded with 100,000 mock USDC and approved executor");
 
   // 4. Create CA-001 v1
   const actionId = ethers.id("CA-001");

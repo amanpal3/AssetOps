@@ -1,53 +1,73 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
+/**
+ * Canonical AssetOps demonstration:
+ * Alice 500 / Bob 500 / Charlie 0 → Bob sends 200 to Charlie → CA-001 v2 at 4%.
+ * Contract math (floor(balance * 400 / 10_000)):
+ *   Alice 20, Bob 12, Charlie 8, total 40.
+ */
 describe("AssetOps Master Lifecycle Integration Test", function () {
-  let securityToken: any, paymentCurrency: any, registry: any, executor: any;
-  let admin: any, treasury: any, alice: any, bob: any, charlie: any;
+  let securityToken: any;
+  let paymentCurrency: any;
+  let registry: any;
+  let executor: any;
+  let admin: any;
+  let treasury: any;
+  let alice: any;
+  let bob: any;
+  let charlie: any;
   const actionId = ethers.id("CA-001");
   const redemptionActionId = ethers.id("CA-REDEMPTION-001");
 
   before(async function () {
     [admin, treasury, alice, bob, charlie] = await ethers.getSigners();
 
-    // 1. Deploy contracts
     const SecToken = await ethers.getContractFactory("SecurityToken");
     securityToken = await SecToken.deploy("Demo Bond Token", "DBT", admin.address);
 
     const PayCurr = await ethers.getContractFactory("PaymentCurrency");
-    paymentCurrency = await PayCurr.deploy("Mock USDC", "USDC", admin.address);
+    paymentCurrency = await PayCurr.deploy("Mock USD Coin", "mUSDC", admin.address);
 
     const Reg = await ethers.getContractFactory("CorporateActionRegistry");
     registry = await Reg.deploy(admin.address);
 
     const Exec = await ethers.getContractFactory("PaymentExecutor");
-    executor = await Exec.deploy(admin.address, await registry.getAddress(), await paymentCurrency.getAddress());
+    executor = await Exec.deploy(
+      admin.address,
+      await registry.getAddress(),
+      await paymentCurrency.getAddress(),
+      treasury.address
+    );
 
-    // 2. Configure roles
     await registry.grantRole(await registry.EXECUTOR_ROLE(), await executor.getAddress());
     await securityToken.grantRole(await securityToken.BURNER_ROLE(), await executor.getAddress());
 
-    // 3. Whitelist holders
     await securityToken.setWhitelisted(alice.address, true);
     await securityToken.setWhitelisted(bob.address, true);
     await securityToken.setWhitelisted(charlie.address, true);
 
-    // 4. Mint 1,000 DBT (Alice 500, Bob 500)
     await securityToken.mint(alice.address, ethers.parseEther("500"));
     await securityToken.mint(bob.address, ethers.parseEther("500"));
 
-    // 5. Fund Treasury with 100,000 mock USDC and approve executor
     await paymentCurrency.mint(treasury.address, ethers.parseEther("100000"));
     await paymentCurrency.connect(treasury).approve(await executor.getAddress(), ethers.MaxUint256);
   });
 
+  it("starts with Alice 500, Bob 500, Charlie 0", async function () {
+    expect(await securityToken.balanceOf(alice.address)).to.equal(ethers.parseEther("500"));
+    expect(await securityToken.balanceOf(bob.address)).to.equal(ethers.parseEther("500"));
+    expect(await securityToken.balanceOf(charlie.address)).to.equal(0);
+  });
+
   it("Step 1: Announce CA-001 v1 at 5% coupon", async function () {
-    const payableDate = Math.floor(Date.now() / 1000) - 10;
+    const payableDate = await time.latest();
     await registry.createAction(
       actionId,
       await securityToken.getAddress(),
-      0, // COUPON
-      500, // 5%
+      0,
+      500,
       0,
       payableDate - 100,
       payableDate,
@@ -67,63 +87,66 @@ describe("AssetOps Master Lifecycle Integration Test", function () {
     expect(await securityToken.balanceOf(charlie.address)).to.equal(ethers.parseEther("200"));
   });
 
-  it("Step 3: Amend CA-001 to v2 at 4% coupon", async function () {
-    await registry.amendAction(
-      actionId,
-      400, // 4%
-      0,
-      0,
-      "ipfs://QmAnnouncementV2"
-    );
+  it("Step 3: Amend CA-001 to v2 at 4% coupon without editing Version 1", async function () {
+    const v1 = await registry.getActiveVersion(actionId);
+    await registry.amendAction(actionId, 400, 0, 0, "ipfs://QmAnnouncementV2");
+
+    const v1After = await registry.getVersion(v1.versionId);
+    expect(v1After.rateBps).to.equal(500);
+    expect(v1After.status).to.equal(2);
 
     const activeVer = await registry.getActiveVersion(actionId);
     expect(activeVer.version).to.equal(2);
     expect(activeVer.rateBps).to.equal(400);
+    expect(activeVer.supersedesVersionId).to.equal(v1.versionId);
 
     const history = await registry.getHistory(actionId);
-    expect(history[0].status).to.equal(2); // v1 SUPERSEDED
-    expect(history[1].status).to.equal(1); // v2 ACTIVE
+    expect(history[0].status).to.equal(2);
+    expect(history[1].status).to.equal(1);
   });
 
-  it("Step 4: Execute v2 payout against live holder balances", async function () {
-    await executor.executeAction(actionId, treasury.address);
+  it("Step 4: Contract calculates v2 payout from live balances (20/12/8 = 40)", async function () {
+    const preview = await executor.previewCoupon(actionId);
+    expect(preview.total).to.equal(ethers.parseEther("40"));
 
-    // Alice: 500 * 4% = 20 USDC
+    await expect(executor.executeAction(actionId))
+      .to.emit(executor, "ActionPaymentExecuted")
+      .and.to.emit(executor, "HolderPaid");
+
     expect(await paymentCurrency.balanceOf(alice.address)).to.equal(ethers.parseEther("20"));
-    // Bob: 300 * 4% = 12 USDC
     expect(await paymentCurrency.balanceOf(bob.address)).to.equal(ethers.parseEther("12"));
-    // Charlie: 200 * 4% = 8 USDC
     expect(await paymentCurrency.balanceOf(charlie.address)).to.equal(ethers.parseEther("8"));
   });
 
-  it("Step 5: Intentional Replay Attack: Duplicate payout MUST revert", async function () {
-    await expect(
-      executor.executeAction(actionId, treasury.address)
-    ).to.be.revertedWithCustomError(executor, "AlreadyExecuted");
+  it("Step 5: Duplicate execution reverts and does not move further funds", async function () {
+    await expect(executor.executeAction(actionId)).to.be.revertedWithCustomError(executor, "AlreadyExecuted");
+    expect(await paymentCurrency.balanceOf(alice.address)).to.equal(ethers.parseEther("20"));
+    expect(await paymentCurrency.balanceOf(bob.address)).to.equal(ethers.parseEther("12"));
+    expect(await paymentCurrency.balanceOf(charlie.address)).to.equal(ethers.parseEther("8"));
   });
 
-  it("Step 6: Maturity Principal Redemption & Token Burn", async function () {
-    const payableDate = Math.floor(Date.now() / 1000) - 5;
-    // 1 DBT = 1 USDC principal
+  it("Step 6: Redemption pays principal from live balances and burns exact token amounts", async function () {
+    const payableDate = await time.latest();
     await registry.createAction(
       redemptionActionId,
       await securityToken.getAddress(),
-      2, // REDEMPTION
+      2,
       0,
-      ethers.parseEther("1"), // 1 USDC per 1 DBT
+      ethers.parseEther("1"),
       payableDate - 10,
       payableDate,
       "ipfs://QmRedemption"
     );
 
-    await executor.executeAction(redemptionActionId, treasury.address);
+    const preview = await executor.previewRedemption(redemptionActionId);
+    expect(preview.total).to.equal(ethers.parseEther("1000"));
 
-    // Holders received principal: Alice (+500), Bob (+300), Charlie (+200)
+    await executor.executeAction(redemptionActionId);
+
     expect(await paymentCurrency.balanceOf(alice.address)).to.equal(ethers.parseEther("520"));
     expect(await paymentCurrency.balanceOf(bob.address)).to.equal(ethers.parseEther("312"));
     expect(await paymentCurrency.balanceOf(charlie.address)).to.equal(ethers.parseEther("208"));
 
-    // Asset tokens burned: balances and total supply = 0
     expect(await securityToken.balanceOf(alice.address)).to.equal(0);
     expect(await securityToken.balanceOf(bob.address)).to.equal(0);
     expect(await securityToken.balanceOf(charlie.address)).to.equal(0);
