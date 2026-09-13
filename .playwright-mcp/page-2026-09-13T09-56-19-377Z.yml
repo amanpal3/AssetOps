@@ -1,0 +1,134 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: A
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - heading "AssetOps" [level=1] [ref=e9]
+          - generic [ref=e10]: v0.1.0 • Live
+        - paragraph [ref=e11]: Operations Layer for Tokenized Assets
+    - generic [ref=e12]:
+      - generic [ref=e13]: Hardhat
+      - button "Connect Wallet" [ref=e18] [cursor=pointer]
+  - generic [ref=e23]:
+    - complementary [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]: Operations
+        - button "Overview" [ref=e27] [cursor=pointer]
+        - button "Assets" [ref=e35] [cursor=pointer]
+        - button "Holder Registry" [active] [ref=e42] [cursor=pointer]
+        - button "Corporate Actions" [ref=e49] [cursor=pointer]
+        - button "Payments" [ref=e54] [cursor=pointer]
+        - button "Redemptions" [ref=e58] [cursor=pointer]
+        - button "Audit History" [ref=e62] [cursor=pointer]
+        - button "Demo Controls" [ref=e68] [cursor=pointer]
+      - generic [ref=e74]:
+        - generic [ref=e79]:
+          - paragraph [ref=e80]: Indexer Synced
+          - paragraph [ref=e81]: "Head: Block #194825"
+        - generic [ref=e82]: Live
+    - main [ref=e83]:
+      - generic [ref=e269]:
+        - generic [ref=e270]:
+          - generic [ref=e271]:
+            - generic [ref=e272]:
+              - generic [ref=e273]: Authoritative Registry
+              - generic [ref=e274]: ERC-1404 Restricted Token
+            - heading "Holders Registry" [level=2] [ref=e275]
+            - paragraph [ref=e276]: Live on-chain ownership registry reflecting real-time token distribution and allowlist compliance.
+          - 'link "Contract: 0x5FbD...0aa3" [ref=e278] [cursor=pointer]':
+            - /url: https://sepolia.etherscan.io/address/0x5FbDB2315678afecb367f032d93F642f64180aa3
+        - generic [ref=e283]:
+          - generic [ref=e284]:
+            - generic [ref=e285]: Total Supply
+            - heading "1,000.00" [level=3] [ref=e293]
+            - paragraph [ref=e294]: DBT (Digital Bond Token)
+          - generic [ref=e295]:
+            - generic [ref=e296]: Active Holders
+            - heading "3" [level=3] [ref=e304]
+            - paragraph [ref=e305]: Whitelisted institutional accounts
+          - generic [ref=e306]:
+            - generic [ref=e307]: Allowlist Compliance
+            - heading "100%" [level=3] [ref=e313]
+            - paragraph [ref=e314]: All accounts verified on-chain
+          - generic [ref=e315]:
+            - generic [ref=e316]: Mid-Cycle Transfer
+            - heading "200 DBT" [level=3] [ref=e322]
+            - paragraph [ref=e323]: Bob → Charlie executed
+        - generic [ref=e324]:
+          - generic [ref=e330]:
+            - heading "Mid-Cycle Transfer Synchronization" [level=4] [ref=e331]
+            - paragraph [ref=e332]: Bob transferred 200 DBT to Charlie after initial announcement. Payment calculation automatically adapts to the updated live balances without requiring manual reconciliation.
+          - button "Preview Payout Breakdown →" [ref=e333] [cursor=pointer]
+        - generic [ref=e334]:
+          - generic [ref=e335]:
+            - generic [ref=e336]:
+              - heading "Token Holders Registry" [level=3] [ref=e337]
+              - paragraph [ref=e338]:
+                - text: Authoritative on-chain balances verified against
+                - code [ref=e339]: SecurityToken.sol
+                - text: .
+            - textbox "Search address or holder..." [ref=e344]
+          - table [ref=e346]:
+            - rowgroup [ref=e347]:
+              - row [ref=e348]:
+                - columnheader "Holder Account" [ref=e349]
+                - columnheader "Role / Classification" [ref=e350]
+                - columnheader "Balance (DBT)" [ref=e351]
+                - columnheader "Ownership" [ref=e352]
+                - columnheader "Compliance Status" [ref=e353]
+                - columnheader "Explorer" [ref=e354]
+            - rowgroup [ref=e355]:
+              - row [ref=e356]:
+                - cell "A Alice 0x7099...79C8" [ref=e357]:
+                  - generic [ref=e358]:
+                    - generic [ref=e359]: A
+                    - generic [ref=e360]:
+                      - generic [ref=e361]: Alice
+                      - generic [ref=e362]:
+                        - generic [ref=e363]: 0x7099...79C8
+                        - button "Copy address" [ref=e364] [cursor=pointer]
+                - cell "Anchor Institutional Investor" [ref=e368]
+                - cell "500.00DBT" [ref=e369]
+                - cell "50.0%" [ref=e370]
+                - cell "Whitelisted" [ref=e372]
+                - cell [ref=e377]:
+                  - link "View on Explorer" [ref=e378] [cursor=pointer]:
+                    - /url: https://sepolia.etherscan.io/address/0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+              - row [ref=e383]:
+                - cell "B Bob 0x3C44...93BC" [ref=e384]:
+                  - generic [ref=e385]:
+                    - generic [ref=e386]: B
+                    - generic [ref=e387]:
+                      - generic [ref=e388]: Bob
+                      - generic [ref=e389]:
+                        - generic [ref=e390]: 0x3C44...93BC
+                        - button "Copy address" [ref=e391] [cursor=pointer]
+                - cell "Primary Account (Transferred 200 to Charlie)" [ref=e395]
+                - cell "300.00DBT" [ref=e396]
+                - cell "30.0%" [ref=e397]
+                - cell "Whitelisted" [ref=e399]
+                - cell [ref=e404]:
+                  - link "View on Explorer" [ref=e405] [cursor=pointer]:
+                    - /url: https://sepolia.etherscan.io/address/0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+              - row [ref=e410]:
+                - cell "C Charlie 0x90F7...b906" [ref=e411]:
+                  - generic [ref=e412]:
+                    - generic [ref=e413]: C
+                    - generic [ref=e414]:
+                      - generic [ref=e415]: Charlie
+                      - generic [ref=e416]:
+                        - generic [ref=e417]: 0x90F7...b906
+                        - button "Copy address" [ref=e418] [cursor=pointer]
+                - cell "Secondary Market Transferee" [ref=e422]
+                - cell "200.00DBT" [ref=e423]
+                - cell "20.0%" [ref=e424]
+                - cell "Whitelisted" [ref=e426]
+                - cell [ref=e431]:
+                  - link "View on Explorer" [ref=e432] [cursor=pointer]:
+                    - /url: https://sepolia.etherscan.io/address/0x90F79bf6EB2c4f870365E785982E1f101E93b906
+          - generic [ref=e437]:
+            - generic [ref=e438]:
+              - text: "Total Circulating Supply:"
+              - strong [ref=e439]: 1,000 DBT
+            - generic [ref=e440]: "Snapshot State: Block-Level Live Read"

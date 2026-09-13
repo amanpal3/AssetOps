@@ -1,0 +1,145 @@
+- generic [ref=f3e3]:
+  - banner [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - generic [ref=f3e6]: A
+      - generic [ref=f3e7]:
+        - generic [ref=f3e8]:
+          - heading "AssetOps" [level=1] [ref=f3e9]
+          - generic [ref=f3e10]: v0.1.0 • Live
+        - paragraph [ref=f3e11]: Operations Layer for Tokenized Assets
+    - generic [ref=f3e12]:
+      - generic [ref=f3e13]: Hardhat
+      - button "Connect Wallet" [ref=f3e18] [cursor=pointer]
+  - generic [ref=f3e23]:
+    - complementary [ref=f3e24]:
+      - generic [ref=f3e25]:
+        - generic [ref=f3e26]: Operations
+        - button "Overview" [ref=f3e27] [cursor=pointer]
+        - button "Assets" [ref=f3e35] [cursor=pointer]
+        - button "Holder Registry" [ref=f3e42] [cursor=pointer]
+        - button "Corporate Actions" [ref=f3e49] [cursor=pointer]
+        - button "Payments" [ref=f3e54] [cursor=pointer]
+        - button "Redemptions" [ref=f3e58] [cursor=pointer]
+        - button "Audit History" [ref=f3e62] [cursor=pointer]
+        - button "Demo Controls" [ref=f3e68] [cursor=pointer]
+      - generic [ref=f3e74]:
+        - generic [ref=f3e79]:
+          - paragraph [ref=f3e80]: Indexer Synced
+          - paragraph [ref=f3e81]: "Head: Block #194825"
+        - generic [ref=f3e82]: Live
+    - main [ref=f3e83]:
+      - generic [ref=f3e84]:
+        - generic [ref=f3e85]:
+          - generic [ref=f3e86]:
+            - generic [ref=f3e87]:
+              - generic [ref=f3e88]: Operations Suite
+              - generic [ref=f3e91]: "Asset: Digital Bond Token (DBT)"
+              - generic [ref=f3e92]: "Synced: #23"
+            - heading "Operations Control Room" [level=2] [ref=f3e97]
+            - paragraph [ref=f3e98]: "Institutional lifecycle dashboard: corporate action versioning, real-time payouts, and on-chain compliance."
+          - generic [ref=f3e99]:
+            - generic [ref=f3e100]:
+              - generic [ref=f3e105]: Ethereum Sepolia
+              - generic [ref=f3e106]: "#23"
+            - button "Demo Scenario" [ref=f3e107] [cursor=pointer]
+        - generic [ref=f3e112]:
+          - generic [ref=f3e114]:
+            - paragraph [ref=f3e115]: Total Assets Issued
+            - heading "1,000 DBT" [level=3] [ref=f3e116]
+            - paragraph [ref=f3e117]: 3 whitelisted institutional holders
+          - generic [ref=f3e125]:
+            - paragraph [ref=f3e126]: Active Corporate Action
+            - heading "CA-001 (v2)" [level=3] [ref=f3e127]
+            - paragraph [ref=f3e128]: 4.00% Coupon (v1 Superseded)
+          - generic [ref=f3e134]:
+            - paragraph [ref=f3e135]: Treasury Liquidity
+            - heading "50,000 USDC" [level=3] [ref=f3e136]
+            - paragraph [ref=f3e137]: "Payment Token: 100% Funded"
+          - generic [ref=f3e142]:
+            - paragraph [ref=f3e143]: Indexer Synchronization
+            - heading "Synced" [level=3] [ref=f3e144]
+            - paragraph [ref=f3e145]: "Head: Block #23"
+        - generic [ref=f3e150]:
+          - generic [ref=f3e151]:
+            - generic [ref=f3e152]:
+              - generic [ref=f3e153]: ACTION REQUIRED
+              - generic [ref=f3e154]: "Action ID: CA-001 • Version 2 (ACTIVE)"
+            - heading "Coupon Distribution Ready for Execution" [level=3] [ref=f3e155]
+            - paragraph [ref=f3e156]:
+              - text: Corporate action amended from 5% to 4%. Historical Version 1 was marked SUPERSEDED. Payment will disburse
+              - strong [ref=f3e157]: 40.00 USDC
+              - text: across 3 active holders based on authoritative snapshot balances.
+          - generic [ref=f3e158]:
+            - button "View Action Details" [ref=f3e159] [cursor=pointer]
+            - button "Review & Execute Payout" [ref=f3e160] [cursor=pointer]
+        - generic [ref=f3e164]:
+          - generic [ref=f3e165]:
+            - generic [ref=f3e166]:
+              - generic [ref=f3e167]:
+                - heading "Holders Distribution" [level=3] [ref=f3e168]
+                - paragraph [ref=f3e169]: Cap table breakdown of 1,000 DBT
+              - button "Full Registry" [ref=f3e170] [cursor=pointer]
+            - generic [ref=f3e173]:
+              - generic [ref=f3e174]:
+                - 'generic "Alice: 50%" [ref=f3e175]'
+                - 'generic "Bob: 30%" [ref=f3e176]'
+                - 'generic "Charlie: 20%" [ref=f3e177]'
+              - generic [ref=f3e178]:
+                - generic [ref=f3e179]: Alice (50%)
+                - generic [ref=f3e182]: Bob (30%)
+                - generic [ref=f3e185]: Charlie (20%)
+            - generic [ref=f3e188]:
+              - generic [ref=f3e189]:
+                - generic [ref=f3e190]:
+                  - generic [ref=f3e191]: A
+                  - generic [ref=f3e192]:
+                    - text: Alice
+                    - generic [ref=f3e193]: (0x70...79C8)
+                - generic [ref=f3e194]:
+                  - generic [ref=f3e195]: 500 DBT
+                  - generic [ref=f3e196]: 50%
+              - generic [ref=f3e197]:
+                - generic [ref=f3e198]:
+                  - generic [ref=f3e199]: B
+                  - generic [ref=f3e200]:
+                    - text: Bob
+                    - generic [ref=f3e201]: (0x3C...93BC)
+                - generic [ref=f3e202]:
+                  - generic [ref=f3e203]: 300 DBT
+                  - generic [ref=f3e204]: 30%
+              - generic [ref=f3e205]:
+                - generic [ref=f3e206]:
+                  - generic [ref=f3e207]: C
+                  - generic [ref=f3e208]:
+                    - text: Charlie
+                    - generic [ref=f3e209]: (0x90...b906)
+                - generic [ref=f3e210]:
+                  - generic [ref=f3e211]: 200 DBT
+                  - generic [ref=f3e212]: 20%
+          - generic [ref=f3e213]:
+            - generic [ref=f3e214]:
+              - generic [ref=f3e215]:
+                - heading "Recent Activity" [level=3] [ref=f3e216]
+                - paragraph [ref=f3e217]: On-chain lifecycle events indexed
+              - button "Audit Log" [ref=f3e218] [cursor=pointer]
+            - generic [ref=f3e221]:
+              - generic [ref=f3e227]:
+                - generic [ref=f3e228]:
+                  - generic [ref=f3e229]: ActionAmended (v2 Created)
+                  - generic [ref=f3e230]: "Block #194821"
+                - paragraph [ref=f3e231]: CA-001 coupon rate amended to 4.00%. Version 1 set to SUPERSEDED.
+              - generic [ref=f3e238]:
+                - generic [ref=f3e239]:
+                  - generic [ref=f3e240]: Transfer (200 DBT)
+                  - generic [ref=f3e241]: "Block #194819"
+                - paragraph [ref=f3e242]: "Bob transferred 200 DBT to Charlie. Balances: Bob (300), Charlie (200)."
+              - generic [ref=f3e248]:
+                - generic [ref=f3e249]:
+                  - generic [ref=f3e250]: ActionCreated (v1 Announced)
+                  - generic [ref=f3e251]: "Block #194810"
+                - paragraph [ref=f3e252]: Initial coupon announcement for CA-001 at 5.00% rate.
+              - generic [ref=f3e258]:
+                - generic [ref=f3e259]:
+                  - generic [ref=f3e260]: Token Mint & Whitelist
+                  - generic [ref=f3e261]: "Block #194801"
+                - paragraph [ref=f3e262]: 1,000 DBT minted. Alice (500) and Bob (500) registered and whitelisted.

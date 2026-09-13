@@ -1,12 +1,121 @@
 {
   "network": "hardhat",
   "chainId": 31337,
+  "abiVersion": "0.1.0",
+  "explorerBaseUrl": "",
+  "deploymentBlock": 13,
   "contracts": {
-    "securityToken": "",
-    "paymentCurrency": "",
-    "corporateActionRegistry": "",
-    "paymentExecutor": ""
+    "securityToken": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "paymentCurrency": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "corporateActionRegistry": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    "paymentExecutor": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
   },
-  "deploymentBlock": 0,
-  "lastUpdated": ""
+  "constructorParams": {
+    "securityToken": {
+      "name": "Demo Bond Token",
+      "symbol": "DBT",
+      "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    },
+    "paymentCurrency": {
+      "name": "Mock USD Coin",
+      "symbol": "mUSDC",
+      "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    },
+    "corporateActionRegistry": {
+      "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    },
+    "paymentExecutor": {
+      "admin": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "registry": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "paymentCurrency": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "treasury": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    }
+  },
+  "roleAssignments": [
+    {
+      "name": "DEFAULT_ADMIN_ROLE",
+      "contract": "SecurityToken",
+      "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "description": "Grant and revoke token roles"
+    },
+    {
+      "name": "MINTER_ROLE",
+      "contract": "SecurityToken",
+      "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "description": "Mint DBT"
+    },
+    {
+      "name": "AGENT_ROLE",
+      "contract": "SecurityToken",
+      "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "description": "Allowlist and pause"
+    },
+    {
+      "name": "BURNER_ROLE",
+      "contract": "SecurityToken",
+      "account": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "description": "Authorized redemption burns"
+    },
+    {
+      "name": "MINTER_ROLE",
+      "contract": "PaymentCurrency",
+      "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "description": "Mint mock payment currency"
+    },
+    {
+      "name": "ANNOUNCER_ROLE",
+      "contract": "CorporateActionRegistry",
+      "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "description": "Create and amend actions"
+    },
+    {
+      "name": "EXECUTOR_ROLE",
+      "contract": "CorporateActionRegistry",
+      "account": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "description": "Mark versions executed"
+    },
+    {
+      "name": "DEFAULT_ADMIN_ROLE",
+      "contract": "PaymentExecutor",
+      "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "description": "Executor administration"
+    },
+    {
+      "name": "EXECUTOR_ROLE",
+      "contract": "PaymentExecutor",
+      "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "description": "Execute payable actions"
+    },
+    {
+      "name": "TREASURY_ROLE",
+      "contract": "PaymentExecutor",
+      "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "description": "Treasury funding source"
+    }
+  ],
+  "demoHolders": {
+    "alice": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "bob": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "charlie": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "treasury": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  },
+  "transactions": {
+    "paymentCurrency": "0x88cb9e444bb8cfa5cb276448c2c63f53735afdecd09aa7cd563dc4ed81fff3d0",
+    "securityToken": "0x2e3d86222396122a5b3c3fa2b449714bde248755d67e3cc601596b483e646fff",
+    "corporateActionRegistry": "0x5b9871b74c97ea3c3a7e43da90cfb7ba50dd5573ab2d3216e1e797f4f3611a9c",
+    "paymentExecutor": "0xd385441ae05742f5169432f7027faeeb42cf6260d9ae1acc91af9a7acae25b83",
+    "grantRegistryExecutor": "0x3580c911190c632f3593a741855745808ecf646011f51bce51d8e3c0396ea593",
+    "grantTokenBurner": "0x344171a715b16e639bbc326ab942c1f1e8b930895248258bbad4e3baad7a0149",
+    "mintPaymentCurrency": "0x2fab2e51d053d1ec60966276f23d3652802f531ea87c9ecfb4bdd800d9c6155e",
+    "treasuryAllowance": "0xf24a412020a6e4a0d0722a3fc4799f3c2c28b3d94a0ee4af473dcbee9321f7bd",
+    "mintAlice": "0x79fa8a6f2aa141b8bf1795d64900ee0ab253c78ecf3991a3c52eac19d62b1a1d",
+    "mintBob": "0xfc68191cfb2de4ab39d8f3dd379ebeadea25e0b32970fe75589453a458c65683"
+  },
+  "lastUpdated": "2026-09-13T10:16:43.303Z",
+  "notes": [
+    "PaymentCurrency is mock demo money and is not USD.",
+    "Hackathon demo may use one deployer for multiple roles.",
+    "Production must split roles and use multisignature governance.",
+    "Indexer deduplicates logs by (chainId, transactionHash, logIndex)."
+  ]
 }
