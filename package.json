@@ -16,7 +16,7 @@
     "contracts:test": "pnpm --dir contracts test",
     "contracts:node": "pnpm --dir contracts node",
     "frontend:dev": "pnpm --filter frontend dev",
-    "frontend:build": "pnpm --filter frontend build",
+    "frontend:build": "pnpm --dir frontend build",
     "backend:dev": "pnpm --filter backend dev",
     "backend:build": "pnpm --filter backend build",
     "test:e2e": "tsx tests/e2e/lifecycle.demo.test.ts",
