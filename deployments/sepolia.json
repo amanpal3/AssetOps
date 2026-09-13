@@ -1,0 +1,13 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "contracts": {
+    "securityToken": "",
+    "paymentCurrency": "",
+    "corporateActionRegistry": "",
+    "paymentExecutor": ""
+  },
+  "deploymentBlock": 0,
+  "explorerBaseUrl": "https://sepolia.etherscan.io",
+  "lastUpdated": ""
+}

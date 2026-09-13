@@ -1,0 +1,22 @@
+# AssetOps Code Ownership
+# 3 Core Members:
+# Member A (@member-a) - Smart Contract Lead
+# Member B (@member-b) - Protocol & Backend Lead
+# Member C (@member-c) - Product & Frontend Lead
+
+* @member-a @member-b @member-c
+
+# Smart contracts and hardhat scripts
+/contracts/ @member-a
+
+# Backend, indexer, database, and deployments
+/backend/ @member-b
+/deployments/ @member-b
+/scripts/ @member-a @member-b
+
+# Frontend and UI/UX
+/frontend/ @member-c
+
+# Shared docs and testing
+/docs/ @member-a @member-b @member-c
+/tests/ @member-b @member-c

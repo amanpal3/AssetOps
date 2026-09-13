@@ -1,0 +1,12 @@
+{
+  "network": "hardhat",
+  "chainId": 31337,
+  "contracts": {
+    "securityToken": "",
+    "paymentCurrency": "",
+    "corporateActionRegistry": "",
+    "paymentExecutor": ""
+  },
+  "deploymentBlock": 0,
+  "lastUpdated": ""
+}

@@ -1,0 +1,40 @@
+{
+  "name": "assetops-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AssetOps — The Operations Layer for Tokenized Assets",
+  "workspaces": [
+    "contracts",
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "build": "pnpm --recursive run build",
+    "test": "pnpm --recursive run test",
+    "lint": "pnpm --recursive run lint",
+    "contracts:compile": "pnpm --filter contracts compile",
+    "contracts:test": "pnpm --filter contracts test",
+    "contracts:node": "pnpm --filter contracts node",
+    "frontend:dev": "pnpm --filter frontend dev",
+    "frontend:build": "pnpm --filter frontend build",
+    "backend:dev": "pnpm --filter backend dev",
+    "backend:build": "pnpm --filter backend build",
+    "test:e2e": "tsx tests/e2e/lifecycle.demo.test.ts",
+    "seed:demo": "pnpm --filter contracts run seed:demo"
+  },
+  "keywords": [
+    "rwa",
+    "tokenization",
+    "asset-servicing",
+    "corporate-actions",
+    "ethereum",
+    "smart-contracts"
+  ],
+  "author": "AssetOps Team (Aman Pal + Teammates)",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "tsx": "^4.10.5",
+    "prettier": "^3.2.5"
+  }
+}

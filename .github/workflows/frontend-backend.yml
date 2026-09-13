@@ -1,0 +1,39 @@
+name: Frontend & Backend CI
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/frontend-backend.yml'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/frontend-backend.yml'
+
+jobs:
+  app-services:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Build Backend
+        run: pnpm backend:build
+
+      - name: Build Frontend
+        run: pnpm frontend:build
